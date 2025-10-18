@@ -19,6 +19,14 @@ interface AnalysisResult {
   };
 }
 
+interface HistoryItem extends AnalysisResult {
+  id: string;
+  title: string;
+  date: string;
+  views: number;
+  duration: number;
+}
+
 const Index = () => {
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState([30]);
@@ -27,6 +35,7 @@ const Index = () => {
   const [comments, setComments] = useState('');
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
   const analyzeShort = () => {
     setIsAnalyzing(true);
@@ -44,7 +53,7 @@ const Index = () => {
       if (totalScore >= 75) category = 'Высокий потенциал 🚀';
       else if (totalScore >= 50) category = 'Средний потенциал';
       
-      setResult({
+      const analysisResult = {
         score: Math.round(totalScore),
         category,
         factors: {
@@ -53,7 +62,20 @@ const Index = () => {
           engagement: Math.round(engagementScore),
           timing: Math.round(timingScore)
         }
-      });
+      };
+      
+      setResult(analysisResult);
+      
+      const historyItem: HistoryItem = {
+        ...analysisResult,
+        id: Date.now().toString(),
+        title,
+        date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+        views: Number(views),
+        duration: duration[0]
+      };
+      
+      setHistory(prev => [historyItem, ...prev].slice(0, 10));
       setIsAnalyzing(false);
     }, 1500);
   };
@@ -94,7 +116,7 @@ const Index = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="border-0 shadow-lg bg-white">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -269,6 +291,70 @@ const Index = () => {
                   <p className="text-slate-500 text-sm">
                     Заполните данные и нажмите "Анализировать"<br />
                     для получения прогноза
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-white lg:row-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Icon name="History" size={20} />
+                История анализов
+              </CardTitle>
+              <CardDescription>Последние 10 проверок</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {history.length > 0 ? (
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                  {history.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-lg border border-slate-200 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
+                      onClick={() => setResult(item)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm text-slate-900 line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                            {item.title}
+                          </h4>
+                          <p className="text-xs text-slate-500">{item.date}</p>
+                        </div>
+                        <Badge 
+                          variant="secondary" 
+                          className={`ml-2 ${
+                            item.score >= 75 
+                              ? 'bg-green-50 text-green-700 border-green-200' 
+                              : item.score >= 50 
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-red-50 text-red-700 border-red-200'
+                          }`}
+                        >
+                          {item.score}%
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-slate-600">
+                        <span className="flex items-center gap-1">
+                          <Icon name="Eye" size={12} />
+                          {item.views.toLocaleString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Icon name="Clock" size={12} />
+                          {item.duration}s
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <Icon name="History" className="text-slate-400" size={32} />
+                  </div>
+                  <p className="text-slate-500 text-sm">
+                    История анализов пуста<br />
+                    Проведите первый анализ
                   </p>
                 </div>
               )}
