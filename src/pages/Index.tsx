@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,14 +28,65 @@ interface HistoryItem extends AnalysisResult {
 }
 
 const Index = () => {
-  const [title, setTitle] = useState('');
-  const [duration, setDuration] = useState([30]);
-  const [views, setViews] = useState('');
-  const [likes, setLikes] = useState('');
-  const [comments, setComments] = useState('');
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [title, setTitle] = useState(() => {
+    const saved = localStorage.getItem('shorts_title');
+    return saved || '';
+  });
+  const [duration, setDuration] = useState(() => {
+    const saved = localStorage.getItem('shorts_duration');
+    return saved ? [Number(saved)] : [30];
+  });
+  const [views, setViews] = useState(() => {
+    const saved = localStorage.getItem('shorts_views');
+    return saved || '';
+  });
+  const [likes, setLikes] = useState(() => {
+    const saved = localStorage.getItem('shorts_likes');
+    return saved || '';
+  });
+  const [comments, setComments] = useState(() => {
+    const saved = localStorage.getItem('shorts_comments');
+    return saved || '';
+  });
+  const [result, setResult] = useState<AnalysisResult | null>(() => {
+    const saved = localStorage.getItem('shorts_result');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    const saved = localStorage.getItem('shorts_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('shorts_title', title);
+  }, [title]);
+
+  useEffect(() => {
+    localStorage.setItem('shorts_duration', duration[0].toString());
+  }, [duration]);
+
+  useEffect(() => {
+    localStorage.setItem('shorts_views', views);
+  }, [views]);
+
+  useEffect(() => {
+    localStorage.setItem('shorts_likes', likes);
+  }, [likes]);
+
+  useEffect(() => {
+    localStorage.setItem('shorts_comments', comments);
+  }, [comments]);
+
+  useEffect(() => {
+    if (result) {
+      localStorage.setItem('shorts_result', JSON.stringify(result));
+    }
+  }, [result]);
+
+  useEffect(() => {
+    localStorage.setItem('shorts_history', JSON.stringify(history));
+  }, [history]);
 
   const analyzeShort = () => {
     if (!title || !views) return;
@@ -77,7 +128,9 @@ const Index = () => {
         duration: duration[0]
       };
       
-      setHistory(prev => [historyItem, ...prev].slice(0, 10));
+      const newHistory = [historyItem, ...history].slice(0, 10);
+      setHistory(newHistory);
+      localStorage.setItem('shorts_history', JSON.stringify(newHistory));
       setIsAnalyzing(false);
     }, 1500);
   };
