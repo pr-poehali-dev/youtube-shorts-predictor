@@ -127,7 +127,8 @@ const Index = () => {
               </CardTitle>
               <CardDescription>Введите параметры видео для анализа</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent>
+              <form onSubmit={(e) => { e.preventDefault(); analyzeShort(); }} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Название видео</Label>
                 <Input
@@ -190,7 +191,7 @@ const Index = () => {
               </div>
 
               <Button 
-                onClick={analyzeShort} 
+                type="submit"
                 className="w-full h-12 text-base font-medium"
                 disabled={isAnalyzing || !title || !views}
               >
@@ -206,6 +207,7 @@ const Index = () => {
                   </>
                 )}
               </Button>
+              </form>
             </CardContent>
           </Card>
 
