@@ -38,6 +38,8 @@ const Index = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   const analyzeShort = () => {
+    if (!title || !views) return;
+    
     setIsAnalyzing(true);
     
     setTimeout(() => {
